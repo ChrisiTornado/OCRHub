@@ -5,8 +5,6 @@ OCRHub is a full-stack document management system for uploading PDF files, extra
 
 ## Video Demo
 
-At the end of the project, I created a video demonstration showing the complete workflow:
-
 
 https://github.com/user-attachments/assets/0175a6de-f596-4c85-b1fd-0a79016afeb6
 
