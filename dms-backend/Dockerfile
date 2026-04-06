@@ -1,4 +1,4 @@
-FROM maven:3.9.9 AS build
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # Copy the pom.xml and install dependencies
@@ -9,7 +9,7 @@ RUN mvn dependency:go-offline
 COPY ./src ./src
 RUN mvn package -DskipTests
 
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre
 # the JAR file path
 WORKDIR /app
 

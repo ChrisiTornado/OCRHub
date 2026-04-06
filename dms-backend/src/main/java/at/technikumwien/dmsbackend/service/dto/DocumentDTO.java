@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 @Builder
@@ -26,4 +26,5 @@ public class DocumentDTO {
     private String uploadDate;
     private byte[] fileData; // Only set this when file data is fetched from MinIO
     private String fileKey;
+    private String recognizedText;
 }

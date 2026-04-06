@@ -2,9 +2,8 @@ package at.technikumwien.dmsbackend.controller;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import at.technikumwien.dmsbackend.service.MinioService;
 import org.springframework.http.HttpStatus;
@@ -47,7 +46,7 @@ public class DocumentController {
     @GetMapping()
     public ResponseEntity<List<DocumentDTO>> getDocuments(@RequestParam(value = "content", required = false) String searchTerm) {
         List<DocumentDTO> documents = searchTerm != null && !searchTerm.isBlank()
-                ? documentService.searchDocumentsInContent(searchTerm)
+                ? documentService.searchDocuments(searchTerm)
                 : documentService.getAllDocuments();
         return ResponseEntity.ok(documents);
     }
@@ -74,6 +73,11 @@ public class DocumentController {
     public ResponseEntity<DocumentDTO> getDocumentMetadata(@Valid @PathVariable Long id) {
         DocumentDTO documentMetadata = documentService.getDocumentMetadata(id);
         return ResponseEntity.ok(documentMetadata);
+    }
+
+    @GetMapping("/{id}/ocr")
+    public ResponseEntity<String> getDocumentOcrText(@Valid @PathVariable Long id) {
+        return ResponseEntity.ok(documentService.getDocumentOcrText(id));
     }
 
     @GetMapping("/{id}/download")

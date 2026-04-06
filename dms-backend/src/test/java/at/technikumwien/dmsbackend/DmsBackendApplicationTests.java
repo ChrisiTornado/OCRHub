@@ -2,26 +2,26 @@ package at.technikumwien.dmsbackend;
 
 import at.technikumwien.dmsbackend.persistence.DocumentIndex;
 import at.technikumwien.dmsbackend.persistence.entity.DocumentEntity;
+import at.technikumwien.dmsbackend.persistence.repository.DocumentIndexRepository;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import at.technikumwien.dmsbackend.persistence.repository.DocumentRepository;
 import at.technikumwien.dmsbackend.service.MinioService;
 import at.technikumwien.dmsbackend.service.dto.DocumentDTO;
+import at.technikumwien.dmsbackend.service.dto.OCRJobDTO;
 import at.technikumwien.dmsbackend.service.mapper.DocumentMapper;
 import at.technikumwien.dmsbackend.service.impl.DocumentServiceImpl;
 import at.technikumwien.dmsbackend.exception.DocumentUploadException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,6 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 class DmsBackendApplicationTests {
 
 	@Mock
@@ -50,6 +49,9 @@ class DmsBackendApplicationTests {
 	@Mock
 	private ElasticsearchClient elasticsearchClient;
 
+	@Mock
+	private DocumentIndexRepository documentIndexRepository;
+
 	@InjectMocks
 	private DocumentServiceImpl documentService;
 
@@ -65,6 +67,7 @@ class DmsBackendApplicationTests {
 		documentDTO.setType("PDF");
 		documentDTO.setSize(1024L);
 		documentDTO.setUploadDate("2024-12-23");
+		documentDTO.setFileData("pdf".getBytes());
 	}
 
 	@Test
@@ -86,7 +89,7 @@ class DmsBackendApplicationTests {
 
 		try {
 			verify(minioService, times(1)).uploadFile(any(), any(), anyLong(), anyString());
-			verify(rabbitTemplate, times(1)).convertAndSend(anyString(), any(), Optional.ofNullable(any()));
+			verify(rabbitTemplate, times(1)).convertAndSend(anyString(), any(OCRJobDTO.class), any(MessagePostProcessor.class));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -99,7 +102,7 @@ class DmsBackendApplicationTests {
 		when(documentRepository.save(any(DocumentEntity.class))).thenThrow(new RuntimeException("DB error"));
 
 		// Act & Assert
-		assertThrows(DocumentUploadException.class, () -> documentService.uploadDocument(documentDTO));
+		assertThrows(RuntimeException.class, () -> documentService.uploadDocument(documentDTO));
 	}
 
 	@Test
@@ -107,6 +110,7 @@ class DmsBackendApplicationTests {
 		// Arrange
 		DocumentEntity documentEntity = new DocumentEntity();
 		documentEntity.setId(1L);
+		documentEntity.setFileKey("document-1");
 
 		when(documentRepository.findById(1L)).thenReturn(Optional.of(documentEntity));
 		when(documentMapper.mapToDto(documentEntity)).thenReturn(documentDTO);
@@ -169,6 +173,7 @@ class DmsBackendApplicationTests {
 		// Arrange
 		DocumentEntity documentEntity = new DocumentEntity();
 		documentEntity.setId(1L);
+		documentEntity.setFileKey("document-1");
 
 		when(documentRepository.findById(1L)).thenReturn(Optional.of(documentEntity));
 

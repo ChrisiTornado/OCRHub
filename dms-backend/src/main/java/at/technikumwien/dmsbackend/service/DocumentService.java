@@ -26,4 +26,6 @@ public interface DocumentService {
     DocumentDTO getDocumentMetadata(Long id);
 
     List<DocumentDTO> searchDocumentsInContent(String searchTerm);
+
+    String getDocumentOcrText(Long id);
 }

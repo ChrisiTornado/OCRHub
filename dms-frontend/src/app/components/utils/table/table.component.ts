@@ -23,6 +23,7 @@ import {MdbSelectModule} from "mdb-angular-ui-kit/select";
 import {RequestOptions} from "../../../models/request-options.model";
 import {CheckboxInputComponent} from "../checkbox-input/checkbox-input.component";
 import {StarRatingComponent} from "../star-rating/star-rating.component";
+import {debounceTime, distinctUntilChanged} from "rxjs";
 
 @Component({
   selector: 'app-table',
@@ -81,13 +82,15 @@ export class TableComponent {
 
     effect(() => {
       if (Object.keys(this.filterFormGroup()!.controls).length > 0) {
-        this.filterFormGroup()!.valueChanges.subscribe(() => {
-          let urlParams = this.getFilterUrlParams();
-          this.urlParamsChange.emit(urlParams != '' ? urlParams : undefined)
-          this.doFilterRequest.emit({
-            urlParams: urlParams != '' ? urlParams : undefined
+        this.filterFormGroup()!.valueChanges
+          .pipe(debounceTime(300), distinctUntilChanged())
+          .subscribe(() => {
+            let urlParams = this.getFilterUrlParams();
+            this.urlParamsChange.emit(urlParams != '' ? urlParams : undefined)
+            this.doFilterRequest.emit({
+              urlParams: urlParams != '' ? urlParams : undefined
+            });
           });
-        });
       }
     });
   }
@@ -181,7 +184,7 @@ export class TableComponent {
         if (params != '')
           params += '&';
         let paramKey = this.columns().find(c => c.filterFormControl && this.getControlName(c.filterFormControl) == key)?.filterUrlParam
-        params += `${paramKey}=${value}`;
+        params += `${paramKey}=${encodeURIComponent(value)}`;
       }
     });
 

@@ -3,6 +3,7 @@ package at.technikumwien.dmsbackend.service.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,13 +18,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import at.technikumwien.dmsbackend.config.RabbitMQConfig;
 import at.technikumwien.dmsbackend.persistence.entity.DocumentEntity;
+import at.technikumwien.dmsbackend.persistence.repository.DocumentIndexRepository;
 import at.technikumwien.dmsbackend.persistence.repository.DocumentRepository;
+import at.technikumwien.dmsbackend.service.MinioService;
 import at.technikumwien.dmsbackend.service.dto.DocumentDTO;
+import at.technikumwien.dmsbackend.service.dto.OCRJobDTO;
 import at.technikumwien.dmsbackend.service.mapper.DocumentMapper;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 class DocumentServiceImplTest {
 
@@ -35,6 +42,18 @@ class DocumentServiceImplTest {
 
     @Mock
     private RabbitTemplate rabbitTemplate;
+
+    @Mock
+    private MinioService minioService;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private DocumentIndexRepository documentIndexRepository;
+
+    @Mock
+    private ElasticsearchClient elasticsearchClient;
 
     @InjectMocks
     private DocumentServiceImpl documentService;
@@ -52,6 +71,7 @@ class DocumentServiceImplTest {
                 .type("Type")
                 .size(123L)
                 .uploadDate("2024-11-04")
+                .fileData("pdf".getBytes())
                 .build();
     
         DocumentEntity documentEntity = DocumentEntity.builder()
@@ -74,7 +94,7 @@ class DocumentServiceImplTest {
         DocumentDTO result = documentService.uploadDocument(documentDTO);
         
         assertNotNull(result);
-        verify(rabbitTemplate, times(1)).convertAndSend(RabbitMQConfig.OCR_QUEUE, "Document uploaded with ID: " + documentEntity.getId());
+        verify(rabbitTemplate, times(1)).convertAndSend(eq(RabbitMQConfig.OCR_QUEUE), any(OCRJobDTO.class), any(MessagePostProcessor.class));
     }
     
     
@@ -161,6 +181,12 @@ class DocumentServiceImplTest {
 
     @Test
     void testDeleteDocument() {
+        DocumentEntity documentEntity = DocumentEntity.builder()
+                .id(1L)
+                .fileKey("document-1")
+                .build();
+        when(documentRepository.findById(1L)).thenReturn(Optional.of(documentEntity));
+
         documentService.deleteDocument(1L);
         verify(documentRepository, times(1)).deleteById(1L);
     }

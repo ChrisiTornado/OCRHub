@@ -6,5 +6,7 @@ export interface DocumentModel {
   type: string
   size: number
   uploadDate: string
+  fileKey?: string
+  recognizedText?: string
   // fileData: string
 }

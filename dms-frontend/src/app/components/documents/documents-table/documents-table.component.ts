@@ -61,12 +61,12 @@ export class DocumentsTableComponent extends AResourceTableComponent<DocumentMod
           outlined: true,
           onClick: ($event) => this.download($event) // Call the update method
         },
-        // {
-        //   iconClass: 'fas fa-external-link-alt fa-lg',
-        //   floating: true,
-        //   outlined: true,
-        //   isObjectLink: true
-        // },
+        {
+          iconClass: 'fas fa-eye fa-lg',
+          floating: true,
+          outlined: true,
+          isObjectLink: true
+        },
         {
           iconClass: 'fas fa-trash fa-lg',
           floating: true,

@@ -23,4 +23,9 @@ export class DocumentService extends ResourceService<DocumentModel> {
 
     return this.http.get(url, {headers, observe: 'response', responseType: 'blob'});
   }
+
+  getOcrText(documentId: number): Observable<string> {
+    const url = `${environment.apiUrl}${this.resourceUrl}/${documentId}/ocr`;
+    return this.http.get(url, {responseType: 'text'});
+  }
 }

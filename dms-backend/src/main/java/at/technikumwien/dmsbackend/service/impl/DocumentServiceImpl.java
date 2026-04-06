@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import at.technikumwien.dmsbackend.persistence.DocumentIndex;
@@ -93,13 +96,14 @@ public class DocumentServiceImpl implements DocumentService {
         DocumentEntity documentEntity = documentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Document not found with ID: " + id));
 
-        return documentMapper.mapToDto(documentEntity);
+        return enrichWithOcrText(documentMapper.mapToDto(documentEntity));
     }
 
     @Override
     public List<DocumentDTO> getAllDocuments() {
         return documentRepository.findAll().stream()
                 .map(documentMapper::mapToDto)
+                .map(this::enrichWithOcrText)
                 .collect(Collectors.toList());
     }
 
@@ -126,7 +130,7 @@ public class DocumentServiceImpl implements DocumentService {
             }
         }
 
-        return documentMapper.mapToDto(existingDocument);
+        return enrichWithOcrText(documentMapper.mapToDto(existingDocument));
     }
 
     @Override
@@ -161,8 +165,29 @@ public class DocumentServiceImpl implements DocumentService {
         if (query == null || query.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        List<DocumentEntity> documentEntities = documentRepository.searchByQuery(query);
-        return documentMapper.mapToDto(documentEntities);
+        Set<Long> seenIds = new HashSet<>();
+        List<DocumentDTO> results = new ArrayList<>();
+
+        try {
+            searchDocumentsInContent(query).forEach(document -> {
+                if (seenIds.add(document.getId())) {
+                    results.add(document);
+                }
+            });
+        } catch (RuntimeException e) {
+            logger.warn("Elasticsearch search failed, falling back to metadata search: {}", e.getMessage());
+        }
+
+        documentRepository.searchByQuery(query).stream()
+                .map(documentMapper::mapToDto)
+                .map(this::enrichWithOcrText)
+                .forEach(document -> {
+                    if (seenIds.add(document.getId())) {
+                        results.add(document);
+                    }
+                });
+
+        return results;
     }
 
     @Override
@@ -188,10 +213,14 @@ public class DocumentServiceImpl implements DocumentService {
             // Map results to DTOs
             List<DocumentDTO> result = searchResponse.hits().hits().stream()
                     .map(Hit::source)
-                    .map(documentIndex -> {
-                        DocumentEntity document = documentRepository.findById(documentIndex.getDocumentId()).get();
-                        return documentMapper.mapToDto(document);
-                    })
+                    .filter(documentIndex -> documentIndex != null && documentIndex.getDocumentId() != null)
+                    .map(documentIndex -> documentRepository.findById(documentIndex.getDocumentId())
+                            .map(document -> {
+                                DocumentDTO dto = documentMapper.mapToDto(document);
+                                dto.setRecognizedText(documentIndex.getContent());
+                                return dto;
+                            }))
+                    .flatMap(Optional::stream)
                     .toList();
             return result;
         } catch (Exception e) {
@@ -202,5 +231,26 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public DocumentDTO getDocumentMetadata(Long id) {
         return getDocumentById(id);
+    }
+
+    @Override
+    public String getDocumentOcrText(Long id) {
+        documentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Document not found with ID: " + id));
+
+        return documentIndexRepository.findById(id)
+                .map(DocumentIndex::getContent)
+                .orElse("");
+    }
+
+    private DocumentDTO enrichWithOcrText(DocumentDTO documentDTO) {
+        if (documentDTO == null || documentDTO.getId() == null) {
+            return documentDTO;
+        }
+
+        documentIndexRepository.findById(documentDTO.getId())
+                .map(DocumentIndex::getContent)
+                .ifPresent(documentDTO::setRecognizedText);
+        return documentDTO;
     }
 }

@@ -1,0 +1,35 @@
+.document-detail {
+  max-width: 960px;
+}
+
+dl {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-top: 1.5rem;
+}
+
+dt {
+  color: #5f6b7a;
+  font-weight: 600;
+}
+
+dd {
+  margin: 0.25rem 0 0;
+}
+
+.ocr-panel {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #d8dee6;
+  border-radius: 8px;
+}
+
+pre {
+  margin: 1rem 0 0;
+  max-height: 480px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
