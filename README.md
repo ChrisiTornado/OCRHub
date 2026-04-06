@@ -2,6 +2,15 @@
 
 OCRHub is a full-stack document management system for uploading PDF files, extracting their content with OCR, and making the recognized text searchable. The project was built as a microservice-based application and demonstrates the complete workflow from document upload to OCR processing, Elasticsearch indexing, frontend search, and dashboard-ready analytics data.
 
+
+## Video Demo
+
+At the end of the project, I created a video demonstration showing the complete workflow:
+
+
+https://github.com/user-attachments/assets/0175a6de-f596-4c85-b1fd-0a79016afeb6
+
+
 ## Features
 
 - PDF upload through a modern Angular frontend
@@ -88,7 +97,3 @@ The project includes a GitHub Actions workflow that runs automatically on pushes
 - shuts the stack down and removes CI volumes after the run
 
 The workflow uses Docker Compose v2 with the `docker compose` command.
-
-## Video Demo
-
-At the end of the project, I created a video demonstration showing the complete workflow:
