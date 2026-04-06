@@ -1,4 +1,4 @@
-﻿name: CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -50,21 +50,46 @@ jobs:
         run: docker compose -f ./docker-compose.yml config
 
       - name: Start Docker Compose stack
-        run: docker compose -f ./docker-compose.yml up -d --build
+        run: docker compose -f ./docker-compose.yml up -d --build db rabbitmq minio elasticsearch backend ocr frontend nginx
 
       - name: Wait for stack to be ready
         run: |
-          for i in {1..60}; do
-            if curl -fsS http://localhost:9200/_cluster/health \
-              && curl -fsS http://localhost:8080/api/v1/documents \
-              && curl -fsS http://localhost/; then
+          check_url() {
+            local name="$1"
+            local url="$2"
+
+            if curl -fsS "$url" > /tmp/"$name".out; then
+              echo "$name is ready"
+              return 0
+            fi
+
+            echo "$name is not ready yet"
+            return 1
+          }
+
+          for i in {1..90}; do
+            echo "Readiness attempt $i/90"
+
+            es_ready=0
+            backend_ready=0
+            frontend_ready=0
+
+            check_url elasticsearch http://localhost:9200/_cluster/health || es_ready=1
+            check_url backend http://localhost:8080/api/v1/documents || backend_ready=1
+            check_url frontend http://localhost/ || frontend_ready=1
+
+            if [ "$es_ready" -eq 0 ] && [ "$backend_ready" -eq 0 ] && [ "$frontend_ready" -eq 0 ]; then
+              echo "All services are ready"
               exit 0
             fi
+
             docker compose -f ./docker-compose.yml ps
             sleep 5
           done
 
-          docker compose -f ./docker-compose.yml logs --tail=200
+          echo "Stack did not become ready in time"
+          docker compose -f ./docker-compose.yml ps
+          docker compose -f ./docker-compose.yml logs --tail=200 db rabbitmq minio elasticsearch backend ocr frontend nginx
           exit 1
 
       - name: Show running services

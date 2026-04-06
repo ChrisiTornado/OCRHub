@@ -17,4 +17,4 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar /app/application.jar
 
 # Set the default command to run the Java application
-ENTRYPOINT ["java", "-Xmx2048M", "-jar", "/app/application.jar"]
+ENTRYPOINT ["java", "-Xmx768M", "-jar", "/app/application.jar"]
