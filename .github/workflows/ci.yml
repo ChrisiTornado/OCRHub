@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+﻿name: CI/CD Pipeline
 
 on:
   push:
@@ -11,47 +11,65 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U dms"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-
     steps:
-      # Checkout Code
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Setup Docker
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
 
-      # Build Docker Compose Services
-      - name: Build Docker Compose
-        run: docker-compose -f ./docker-compose.yml build
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: dms-frontend/package-lock.json
 
-      # Start Services in Background
-      - name: Start Docker Compose
-        run: docker-compose -f ./docker-compose.yml up -d
+      - name: Make Maven wrappers executable
+        run: chmod +x dms-backend/mvnw dms-ocr/mvnw
 
-      # Wait for Services to be Healthy
-      - name: Wait for Services to be Ready
+      - name: Run backend tests
+        working-directory: dms-backend
+        run: ./mvnw test
+
+      - name: Run OCR service tests
+        working-directory: dms-ocr
+        run: ./mvnw test
+
+      - name: Build frontend
+        working-directory: dms-frontend
         run: |
-          until docker-compose exec db pg_isready -U dms; do
-            echo "Waiting for DB to be ready..."
+          npm ci
+          npm run build
+
+      - name: Validate Docker Compose configuration
+        run: docker compose -f ./docker-compose.yml config
+
+      - name: Start Docker Compose stack
+        run: docker compose -f ./docker-compose.yml up -d --build
+
+      - name: Wait for stack to be ready
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:9200/_cluster/health \
+              && curl -fsS http://localhost:8080/api/v1/documents \
+              && curl -fsS http://localhost/; then
+              exit 0
+            fi
+            docker compose -f ./docker-compose.yml ps
             sleep 5
           done
 
-      # Run Tests
-      - name: Run Unit Tests
-        run: docker-compose exec backend ./gradlew test --tests "at.technikumwien.dmsbackend.DmsBackendApplicationTests"
+          docker compose -f ./docker-compose.yml logs --tail=200
+          exit 1
 
-      # Stop and Cleanup
-      - name: Stop Docker Compose
+      - name: Show running services
+        run: docker compose -f ./docker-compose.yml ps
+
+      - name: Stop Docker Compose stack
         if: always()
-        run: docker-compose -f ./docker-compose.yml down --volumes
+        run: docker compose -f ./docker-compose.yml down --volumes --remove-orphans

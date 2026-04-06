@@ -1,0 +1,22 @@
+﻿.DS_Store
+
+# Local IDE metadata
+.idea/
+.vscode/
+
+# Build output and dependencies
+target/
+node_modules/
+dist/
+.angular/
+
+# Local secrets and SSH keys
+*.pem
+*.key
+*.p8
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*ssh-agent*
+*.ppk
