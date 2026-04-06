@@ -11,9 +11,10 @@
     <p *ngIf="error()" class="text-danger mt-4">{{ error()! | translate }}</p>
 
     <ng-container *ngIf="document() as doc">
-      <section class="mt-4">
+      <section class="document-summary mt-4">
+        <p class="eyebrow">Document</p>
         <h1>{{ doc.title }}</h1>
-        <p class="text-muted">{{ doc.description }}</p>
+        <p>{{ doc.description }}</p>
         <dl>
           <div>
             <dt>{{ 'TYPE' | translate }}</dt>

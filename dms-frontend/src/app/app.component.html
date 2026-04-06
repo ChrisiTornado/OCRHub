@@ -1,8 +1,16 @@
-<div class="d-flex gap-4 align-items-start justify-content-between border-bottom py-3 px-4 mb-4">
-  <h5 class="m-0">{{'DMS'|translate}}</h5>
-  <app-breadcrumbs></app-breadcrumbs>
-</div>
+<div class="app-shell">
+  <header class="app-header">
+    <a routerLink="/documents" class="brand-mark" aria-label="OCRHub home">
+      <span class="brand-icon"><i class="fas fa-file-signature"></i></span>
+      <span>
+        <span class="brand-title">{{'DMS'|translate}}</span>
+        <span class="brand-subtitle">Document intelligence</span>
+      </span>
+    </a>
+    <app-breadcrumbs></app-breadcrumbs>
+  </header>
 
-<div class="p-4">
-  <router-outlet></router-outlet>
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
 </div>

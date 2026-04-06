@@ -1,5 +1,11 @@
-<div class="d-flex justify-content-start">
+<section class="documents-hero">
+  <div>
+    <p class="eyebrow">OCRHub</p>
+    <h1>Find every word you upload.</h1>
+    <p>Upload PDFs, scan them with OCR, and search across the recognized document text.</p>
+  </div>
+
   <app-mdb-button text="{{ 'UPLOAD_DOCUMENT' | translate }}" iconClass="fas fa-plus" (click)="openImportModal()"></app-mdb-button>
-</div>
+</section>
 
 <app-documents-table></app-documents-table>

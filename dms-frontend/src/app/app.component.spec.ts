@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'dms-frontend' title`, () => {
+  it(`should have the 'OCRHub' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('dms-frontend');
+    expect(app.title).toEqual('OCRHub');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, dms-frontend');
+    expect(compiled.querySelector('.brand-title')).toBeTruthy();
   });
 });

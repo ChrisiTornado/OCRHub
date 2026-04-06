@@ -1,0 +1,43 @@
+.documents-hero {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.documents-hero h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 850;
+  line-height: 1.05;
+}
+
+.documents-hero p {
+  max-width: 620px;
+  margin: 0.75rem 0 0;
+  color: #475569;
+  font-size: 1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.65rem !important;
+  color: #0f766e !important;
+  font-size: 0.78rem !important;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .documents-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -5,8 +5,43 @@
   color: #fff;
 }
 
+.datatable {
+  overflow: hidden;
+  border: 1px solid #dbe5ea;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.datatable-inner {
+  border-bottom: 0 !important;
+}
+
 .datatable table th, .datatable table td {
   white-space: unset !important;
+}
+
+.datatable table td,
+.datatable table th {
+  padding: 1rem !important;
+  border-color: #e2e8f0 !important;
+  vertical-align: middle;
+}
+
+.ocrhub-table {
+  margin-bottom: 0;
+}
+
+.ocrhub-table tbody tr {
+  transition: background-color 0.16s ease, transform 0.16s ease;
+}
+
+.ocrhub-table tbody tr:hover {
+  background: #f0fdfa;
+}
+
+.filter-form-controls {
+  background: #f8fafc !important;
 }
 
 .form-check-input {
